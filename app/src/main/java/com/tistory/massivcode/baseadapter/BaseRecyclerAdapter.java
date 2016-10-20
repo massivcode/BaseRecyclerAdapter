@@ -28,7 +28,6 @@ import static com.tistory.massivcode.baseadapter.BaseRecyclerAdapter.ViewType.HE
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * <p>
- * <p>
  * Created by prChoe on 2016-10-17.
  */
 
@@ -56,8 +55,11 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
 
     /**
      * CONTENTS_ONLY : Header 와 Footer 없이 Contents 로만 이루어져 있음
+     * <p>
      * HEADER : Header 와 Contents 로 이루어져 있음
+     * <p>
      * FOOTER : Footer 와 Contents 로 이루어져 있음
+     * <p>
      * HEADER_FOOTER : Header 와 Footer 그리고 Contents 로 이루어져 있음
      */
     public enum ViewType {
@@ -68,11 +70,24 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
     private static final int TYPE_CONTENTS = 1;
     private static final int TYPE_FOOTER = 2;
 
-
+    /**
+     * RecyclerView 의 ViewType
+     */
     private ViewType mViewType = CONTENTS_ONLY;
 
+    /**
+     * HeaderViewHolder 에 Binding 할 Data
+     */
     private Header mHeader;
+
+    /**
+     * FooterViewHolder 에 Binding 할 Data
+     */
     private Footer mFooter;
+
+    /**
+     * ItemViewHolder 에 Binding 할 DataSet
+     */
     private List<Item> mData;
 
     public BaseRecyclerAdapter(@Nullable List<Item> data, ViewType viewType) {
@@ -221,7 +236,7 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
     }
 
     /**
-     * 해당 포지션의 Item 을 리턴합니다. DateSet 이 null 일 경우 null 을 리턴합니다.
+     * 해당 포지션의 Item 을 리턴합니다. DataSet 의 사이즈가 0 일 경우 null 을 리턴합니다.
      *
      * @param position : Item 의 포지션
      * @return : 해당 포지션의 Item
@@ -254,7 +269,7 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
     }
 
     /**
-     * 기존 DataSet 를 Clear 하고 새로운 DateSet 으로 데이터를 교체합니다.
+     * 기존 DataSet 를 Clear 하고 새로운 DataSet 으로 데이터를 교체합니다.
      *
      * @param items : 갈아치워질 새로운 DataSet
      */
@@ -280,7 +295,7 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
     /**
      * 지정된 position 에 새 item 을 삽입합니다.
      *
-     * @param item     : DateSet 에 삽입할 item
+     * @param item     : DataSet 에 삽입할 item
      * @param position : 삽입할 DataSet 의 Position
      */
     public final void insertItem(Item item, int position) {
@@ -308,10 +323,9 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
     }
 
     /**
-     * 기존 DataSet 에서 position 에 위치한 VH 을 제거합니다.
+     * 기존 DataSet 에서 position 에 위치한 Item 을 제거합니다.
      *
      * @param position : 제거할 item 의 position
-     * @return
      */
     public final void removeItem(int position) {
         mData.remove(position);
@@ -319,10 +333,10 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
     }
 
     /**
-     * 기존 DataSet 의 position 에 위치한 item 을 수정합니다.
+     * 기존 DataSet 의 position 에 위치한 Item 을 수정합니다.
      *
      * @param position : 수정할 item 의 position
-     * @param newItem  : 새 item
+     * @param newItem  : 새 Item
      */
     public final void updateItem(int position, Item newItem) {
         mData.set(position, newItem);
