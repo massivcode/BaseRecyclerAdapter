@@ -26,28 +26,42 @@ import java.util.List;
  * Created by prChoe on 2016-10-17.
  */
 
-public abstract class BaseRecyclerAdapter<Item> extends RecyclerView.Adapter<BaseRecyclerAdapter.BaseViewHolder> {
+public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
     public interface OnRecyclerItemClickListener {
-        void onItemClick(View view, int position);
+        void onRecyclerItemClicked(View view, int position);
     }
 
     public interface OnRecyclerItemLongClickListener {
-        void onItemLongClick(View view, int position);
+        void onRecyclerItemLongClicked(View view, int position);
+    }
+
+    /**
+     * CONTENTS_ONLY : Header 와 Footer 없이 Contents 로만 이루어져 있음
+     * HEADER : Header 와 Contents 로 이루어져 있음
+     */
+    public enum ViewType {
+        CONTENTS_ONLY, HEADER, FOOTER, HEADER_FOOTER
+    }
+
+    public class Header {
+
+    }
+
+    public class Footer {
+
     }
 
     private List<Item> mData;
-    private static OnRecyclerItemClickListener mOnItemClickListener;
-    private static OnRecyclerItemLongClickListener mOnItemLongClickListener;
 
     public BaseRecyclerAdapter(@Nullable List<Item> mData) {
         this.mData = mData;
     }
 
     @Override
-    public abstract BaseViewHolder onCreateViewHolder(ViewGroup parent, int viewType);
+    public abstract VH onCreateViewHolder(ViewGroup parent, int viewType);
 
     @Override
-    public abstract void onBindViewHolder(BaseViewHolder holder, int position);
+    public abstract void onBindViewHolder(VH holder, int position);
 
     @Override
     public int getItemCount() {
@@ -58,10 +72,10 @@ public abstract class BaseRecyclerAdapter<Item> extends RecyclerView.Adapter<Bas
     }
 
     /**
-     * 해당 포지션의 Item 을 리턴합니다. DateSet 이 null 일 경우 null 을 리턴합니다.
+     * 해당 포지션의 VH 을 리턴합니다. DateSet 이 null 일 경우 null 을 리턴합니다.
      *
-     * @param position : Item 의 포지션
-     * @return : 해당 포지션의 Item
+     * @param position : VH 의 포지션
+     * @return : 해당 포지션의 VH
      */
     public Item getItem(int position) {
         if (mData == null) {
@@ -135,15 +149,19 @@ public abstract class BaseRecyclerAdapter<Item> extends RecyclerView.Adapter<Bas
         boolean isRemoved = false;
 
         if (mData != null) {
+            int removePosition = mData.indexOf(item);
             isRemoved = mData.remove(item);
-            notifyDataSetChanged();
+
+            if (removePosition != -1) {
+                notifyItemRemoved(removePosition);
+            }
         }
 
         return isRemoved;
     }
 
     /**
-     * 기존 DataSet 에서 position 에 위치한 Item 을 제거합니다.
+     * 기존 DataSet 에서 position 에 위치한 VH 을 제거합니다.
      *
      * @param position : 제거할 item 의 position
      * @return
@@ -154,14 +172,14 @@ public abstract class BaseRecyclerAdapter<Item> extends RecyclerView.Adapter<Bas
         if (mData != null) {
             mData.remove(position);
             isRemoved = true;
-            notifyDataSetChanged();
+            notifyItemRemoved(position);
         }
 
         return isRemoved;
     }
 
     public void updateItem(int position, Item newItem) {
-        if(mData == null) {
+        if (mData == null) {
             return;
         }
 
@@ -169,44 +187,9 @@ public abstract class BaseRecyclerAdapter<Item> extends RecyclerView.Adapter<Bas
         notifyItemChanged(position);
     }
 
+    public abstract void setOnItemClickListener(OnRecyclerItemClickListener listener);
+
+    public abstract void setOnItemLongClickListener(OnRecyclerItemLongClickListener listener);
 
 
-    public void setOnItemClickListener(OnRecyclerItemClickListener listener) {
-        mOnItemClickListener = listener;
-    }
-
-    public void setOnItemLongClickListener(OnRecyclerItemLongClickListener listener) {
-        mOnItemLongClickListener = listener;
-    }
-
-    public static abstract class BaseViewHolder extends RecyclerView.ViewHolder {
-        private View mItemView;
-
-        public BaseViewHolder(View itemView) {
-            super(itemView);
-            mItemView = itemView;
-
-            mItemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (mOnItemClickListener != null) {
-                        mOnItemClickListener.onItemClick(view, getAdapterPosition());
-                    }
-                }
-            });
-
-            mItemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
-                    if (mOnItemLongClickListener != null) {
-                        mOnItemLongClickListener.onItemLongClick(view, getAdapterPosition());
-                        return true;
-                    }
-                    return false;
-                }
-            });
-        }
-
-
-    }
 }

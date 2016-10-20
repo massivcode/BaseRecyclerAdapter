@@ -5,7 +5,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +16,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        List<Model> data = new ArrayList<>();
+        final List<Model> data = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             data.add(new Model("title " + i, "contents " + i));
         }
@@ -29,17 +28,18 @@ public class MainActivity extends AppCompatActivity {
 
         adapter.setOnItemClickListener(new BaseRecyclerAdapter.OnRecyclerItemClickListener() {
             @Override
-            public void onItemClick(View view, int position) {
-                Toast.makeText(MainActivity.this, "아이템 클릭함: " + position, Toast.LENGTH_SHORT).show();
+            public void onRecyclerItemClicked(View view, int position) {
+
             }
         });
 
         adapter.setOnItemLongClickListener(new BaseRecyclerAdapter.OnRecyclerItemLongClickListener() {
             @Override
-            public void onItemLongClick(View view, int position) {
-                Toast.makeText(MainActivity.this, "아이템 롱클릭함!: " + position, Toast.LENGTH_SHORT).show();
-                adapter.updateItem(position, new Model("123s", "dad"));
+            public void onRecyclerItemLongClicked(View view, int position) {
+                adapter.insertItem(new Model("새 타이틀", "새 컨텐츠"), 10);
             }
         });
+
+
     }
 }
