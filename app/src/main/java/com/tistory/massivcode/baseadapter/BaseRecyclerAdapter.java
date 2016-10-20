@@ -5,7 +5,13 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static com.tistory.massivcode.baseadapter.BaseRecyclerAdapter.ViewType.CONTENTS_ONLY;
+import static com.tistory.massivcode.baseadapter.BaseRecyclerAdapter.ViewType.FOOTER;
+import static com.tistory.massivcode.baseadapter.BaseRecyclerAdapter.ViewType.HEADER;
+import static com.tistory.massivcode.baseadapter.BaseRecyclerAdapter.ViewType.HEADER_FOOTER;
 
 /**
  * Copyright 2016 Pureum Choe
@@ -26,7 +32,7 @@ import java.util.List;
  * Created by prChoe on 2016-10-17.
  */
 
-public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
+public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public interface OnRecyclerItemClickListener {
         void onRecyclerItemClicked(View view, int position);
     }
@@ -36,53 +42,215 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
     }
 
     /**
+     * Header 임을 나타내기 위한 Marker interface
+     */
+    public interface Header {
+    }
+
+    /**
+     * Footer 임을 나타내기 위한 Marker interface
+     */
+    public interface Footer {
+    }
+
+
+    /**
      * CONTENTS_ONLY : Header 와 Footer 없이 Contents 로만 이루어져 있음
      * HEADER : Header 와 Contents 로 이루어져 있음
+     * FOOTER : Footer 와 Contents 로 이루어져 있음
+     * HEADER_FOOTER : Header 와 Footer 그리고 Contents 로 이루어져 있음
      */
     public enum ViewType {
         CONTENTS_ONLY, HEADER, FOOTER, HEADER_FOOTER
     }
 
-    public class Header {
+    private static final int TYPE_HEADER = 0;
+    private static final int TYPE_CONTENTS = 1;
+    private static final int TYPE_FOOTER = 2;
 
-    }
 
-    public class Footer {
+    private ViewType mViewType = CONTENTS_ONLY;
 
-    }
-
+    private Header mHeader;
+    private Footer mFooter;
     private List<Item> mData;
 
-    public BaseRecyclerAdapter(@Nullable List<Item> mData) {
-        this.mData = mData;
+    public BaseRecyclerAdapter(@Nullable List<Item> data, ViewType viewType) {
+        setViewType(viewType);
+        setData(data);
+    }
+
+    private void setViewType(ViewType viewType) {
+        switch (viewType) {
+            case CONTENTS_ONLY:
+                mViewType = CONTENTS_ONLY;
+                break;
+            case HEADER:
+                mViewType = HEADER;
+                break;
+            case FOOTER:
+                mViewType = FOOTER;
+                break;
+            case HEADER_FOOTER:
+                mViewType = HEADER_FOOTER;
+                break;
+            default:
+                mViewType = CONTENTS_ONLY;
+                break;
+        }
+    }
+
+    private void setData(@Nullable List<Item> data) {
+        mData = data;
+
+        if (mData == null) {
+            mData = new ArrayList<>();
+        }
+    }
+
+    public void setHeaderItem(Header header) {
+        mHeader = header;
+    }
+
+    public void setFooterItem(Footer footer) {
+        mFooter = footer;
     }
 
     @Override
-    public abstract VH onCreateViewHolder(ViewGroup parent, int viewType);
+    public final RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        RecyclerView.ViewHolder holder = null;
+
+        switch (viewType) {
+            case TYPE_CONTENTS:
+                holder = onCreateItemViewHolder(parent, viewType);
+                break;
+            case TYPE_HEADER:
+                holder = onCreateHeaderViewHolder(parent, viewType);
+                break;
+            case TYPE_FOOTER:
+                holder = onCreateFooterViewHolder(parent, viewType);
+                break;
+        }
+
+        return holder;
+    }
+
+    protected abstract VH onCreateItemViewHolder(ViewGroup parent, int viewType);
+
+    protected abstract RecyclerView.ViewHolder onCreateHeaderViewHolder(ViewGroup parent, int viewType);
+
+    protected abstract RecyclerView.ViewHolder onCreateFooterViewHolder(ViewGroup parent, int viewType);
+
 
     @Override
-    public abstract void onBindViewHolder(VH holder, int position);
+    public final void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        int viewType = getItemViewType(position);
+
+        switch (viewType) {
+            case TYPE_CONTENTS:
+                onBindItemViewHolder((VH) holder, getItem(position));
+                break;
+            case TYPE_HEADER:
+                onBindHeaderViewHolder(holder, mHeader);
+                break;
+            case TYPE_FOOTER:
+                onBindFooterViewHolder(holder, mFooter);
+                break;
+        }
+    }
+
+    protected abstract void onBindItemViewHolder(VH holder, Item item);
+
+    protected abstract void onBindHeaderViewHolder(RecyclerView.ViewHolder holder, Header headerItem);
+
+    protected abstract void onBindFooterViewHolder(RecyclerView.ViewHolder holder, Footer footerItem);
+
+    @Override
+    public void onViewRecycled(RecyclerView.ViewHolder holder) {
+        super.onViewRecycled(holder);
+    }
 
     @Override
     public int getItemCount() {
-        if (mData == null || mData.isEmpty()) {
-            return 0;
+        int size = mData.size();
+
+        switch (mViewType) {
+            case HEADER:
+            case FOOTER:
+                size += 1;
+                break;
+            case HEADER_FOOTER:
+                size += 2;
+                break;
         }
-        return mData.size();
+
+        return size;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        int viewType = TYPE_CONTENTS;
+
+        switch (mViewType) {
+            case HEADER:
+                if (position == 0) {
+                    viewType = TYPE_HEADER;
+                } else {
+                    viewType = TYPE_CONTENTS;
+                }
+                break;
+            case FOOTER:
+                if (position == mData.size()) {
+                    viewType = TYPE_FOOTER;
+                } else {
+                    viewType = TYPE_CONTENTS;
+                }
+                break;
+            case HEADER_FOOTER:
+                if (position == 0) {
+                    viewType = TYPE_HEADER;
+                } else if (position == mData.size() + 1) {
+                    viewType = TYPE_FOOTER;
+                } else {
+                    viewType = TYPE_CONTENTS;
+                }
+                break;
+        }
+
+        return viewType;
     }
 
     /**
-     * 해당 포지션의 VH 을 리턴합니다. DateSet 이 null 일 경우 null 을 리턴합니다.
+     * 해당 포지션의 Item 을 리턴합니다. DateSet 이 null 일 경우 null 을 리턴합니다.
      *
-     * @param position : VH 의 포지션
-     * @return : 해당 포지션의 VH
+     * @param position : Item 의 포지션
+     * @return : 해당 포지션의 Item
      */
-    public Item getItem(int position) {
-        if (mData == null) {
-            return null;
+    public final Item getItem(int position) {
+        Item item = null;
+
+        switch (mViewType) {
+            case HEADER:
+                item = mData.get(position - 1);
+                break;
+            case FOOTER:
+                item = mData.get(position);
+                break;
+            case HEADER_FOOTER:
+                int virtualSize = mData.size() + 2;
+
+                if (position < virtualSize) {
+                    item = mData.get(position - 1);
+                } else {
+                    item = mData.get(position - 2);
+                }
+                break;
+            case CONTENTS_ONLY:
+                item = mData.get(position);
+                break;
         }
 
-        return mData.get(position);
+        return item;
     }
 
     /**
@@ -90,15 +258,12 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
      *
      * @param items : 갈아치워질 새로운 DataSet
      */
-    public void swapItems(List<Item> items) {
-        if (mData == null) {
-            mData = items;
-            notifyDataSetChanged();
-            return;
+    public final void swapItems(List<Item> items) {
+        mData.clear();
+        if (items != null) {
+            mData.addAll(items);
         }
 
-        mData.clear();
-        mData.addAll(items);
         notifyDataSetChanged();
     }
 
@@ -107,15 +272,7 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
      *
      * @param item : DataSet 에 삽입할 item
      */
-    public void insertItem(Item item) {
-        if (item == null) {
-            return;
-        }
-
-        if (mData == null) {
-            return;
-        }
-
+    public final void insertItem(Item item) {
         mData.add(item);
         notifyItemInserted(mData.size() - 1);
     }
@@ -126,15 +283,7 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
      * @param item     : DateSet 에 삽입할 item
      * @param position : 삽입할 DataSet 의 Position
      */
-    public void insertItem(Item item, int position) {
-        if (item == null) {
-            return;
-        }
-
-        if (mData == null) {
-            return;
-        }
-
+    public final void insertItem(Item item, int position) {
         mData.add(position, item);
         notifyDataSetChanged();
     }
@@ -145,16 +294,14 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
      * @param item : 제거할 item
      * @return : 제거에 성공했으면 true, 기존 DataSet 에 포함되지 않아 실패했으면 false
      */
-    public boolean removeItem(Item item) {
+    public final boolean removeItem(Item item) {
         boolean isRemoved = false;
 
-        if (mData != null) {
-            int removePosition = mData.indexOf(item);
-            isRemoved = mData.remove(item);
+        int removePosition = mData.indexOf(item);
+        isRemoved = mData.remove(item);
 
-            if (removePosition != -1) {
-                notifyItemRemoved(removePosition);
-            }
+        if (removePosition != -1) {
+            notifyItemRemoved(removePosition);
         }
 
         return isRemoved;
@@ -166,26 +313,22 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
      * @param position : 제거할 item 의 position
      * @return
      */
-    public boolean removeItem(int position) {
-        boolean isRemoved = false;
-
-        if (mData != null) {
-            mData.remove(position);
-            isRemoved = true;
-            notifyItemRemoved(position);
-        }
-
-        return isRemoved;
+    public final void removeItem(int position) {
+        mData.remove(position);
+        notifyItemRemoved(position);
     }
 
-    public void updateItem(int position, Item newItem) {
-        if (mData == null) {
-            return;
-        }
-
+    /**
+     * 기존 DataSet 의 position 에 위치한 item 을 수정합니다.
+     *
+     * @param position : 수정할 item 의 position
+     * @param newItem  : 새 item
+     */
+    public final void updateItem(int position, Item newItem) {
         mData.set(position, newItem);
         notifyItemChanged(position);
     }
+
 
     public abstract void setOnItemClickListener(OnRecyclerItemClickListener listener);
 
