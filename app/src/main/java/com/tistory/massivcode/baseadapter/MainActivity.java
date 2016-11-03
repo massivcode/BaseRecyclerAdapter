@@ -5,6 +5,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
+import com.tistory.massivcode.baseadapter.library.BaseRecyclerAdapter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
             data.add(new Model("title " + i, "contents " + i));
         }
 
-        final ModelAdapter adapter = new ModelAdapter(data, BaseRecyclerAdapter.ViewType.HEADER);
+        final ModelAdapter adapter = new ModelAdapter(data, BaseRecyclerAdapter.ViewType.HEADER_FOOTER);
         adapter.setHeaderItem(new HeaderItem("헤더 텍스트1", "헤더 텍스트2"));
         adapter.setFooterItem(new FooterItem("푸터 텍스트1", "푸터 텍스트2"));
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.main_rv);

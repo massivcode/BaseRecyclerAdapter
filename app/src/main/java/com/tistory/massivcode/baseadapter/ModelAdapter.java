@@ -7,6 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.tistory.massivcode.baseadapter.library.BaseRecyclerAdapter;
+
 import java.util.List;
 
 /**
@@ -89,6 +91,7 @@ public class ModelAdapter extends BaseRecyclerAdapter<Model, ModelAdapter.ModelV
     public void setOnItemLongClickListener(OnRecyclerItemLongClickListener listener) {
 
     }
+
 
     static class ModelViewHolder extends RecyclerView.ViewHolder {
         TextView mTitleTextView, mContentsTextView;

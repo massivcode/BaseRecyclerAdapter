@@ -1,17 +1,19 @@
-package com.tistory.massivcode.baseadapter;
+package com.tistory.massivcode.baseadapter.library;
 
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import static com.tistory.massivcode.baseadapter.BaseRecyclerAdapter.ViewType.CONTENTS_ONLY;
-import static com.tistory.massivcode.baseadapter.BaseRecyclerAdapter.ViewType.FOOTER;
-import static com.tistory.massivcode.baseadapter.BaseRecyclerAdapter.ViewType.HEADER;
-import static com.tistory.massivcode.baseadapter.BaseRecyclerAdapter.ViewType.HEADER_FOOTER;
+import static com.tistory.massivcode.baseadapter.library.BaseRecyclerAdapter.ViewType.CONTENTS_ONLY;
+import static com.tistory.massivcode.baseadapter.library.BaseRecyclerAdapter.ViewType.FOOTER;
+import static com.tistory.massivcode.baseadapter.library.BaseRecyclerAdapter.ViewType.HEADER;
+import static com.tistory.massivcode.baseadapter.library.BaseRecyclerAdapter.ViewType.HEADER_FOOTER;
 
 /**
  * Copyright 2016 Pureum Choe
@@ -31,7 +33,8 @@ import static com.tistory.massivcode.baseadapter.BaseRecyclerAdapter.ViewType.HE
  * Created by prChoe on 2016-10-17.
  */
 
-public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements OnItemDragListener, OnItemSwipeListener {
+
     public interface OnRecyclerItemClickListener {
         void onRecyclerItemClicked(View view, int position);
     }
@@ -90,10 +93,13 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
      */
     private List<Item> mData;
 
+    private ItemTouchHelper mItemTouchHelper;
+
     public BaseRecyclerAdapter(@Nullable List<Item> data, ViewType viewType) {
         setViewType(viewType);
         setData(data);
     }
+
 
     private void setViewType(ViewType viewType) {
         switch (viewType) {
@@ -141,6 +147,8 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
                 break;
             case TYPE_HEADER:
                 holder = onCreateHeaderViewHolder(parent, viewType);
+                holder.itemView.setFocusable(false);
+                holder.itemView.setClickable(false);
                 break;
             case TYPE_FOOTER:
                 holder = onCreateFooterViewHolder(parent, viewType);
@@ -233,6 +241,47 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
         }
 
         return viewType;
+    }
+
+
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        ItemTouchHelper.Callback callback = new ItemSwipeAndDragCallback(this, this);
+        mItemTouchHelper = new ItemTouchHelper(callback);
+        mItemTouchHelper.attachToRecyclerView(recyclerView);
+    }
+
+    @Override
+    public void onItemDrag(int startItemIndex, int endItemIndex) {
+        int startDataIndex = startItemIndex;
+        int endDataIndex = endItemIndex;
+
+        switch (mViewType) {
+            case HEADER_FOOTER:
+            case HEADER:
+                startDataIndex -= 1;
+                endDataIndex -= 1;
+                break;
+        }
+
+        Collections.swap(mData, startDataIndex, endDataIndex);
+        notifyItemMoved(startItemIndex, endItemIndex);
+    }
+
+    @Override
+    public void onItemSwipe(int itemIndex) {
+        int dataIndex = itemIndex;
+
+        switch (mViewType) {
+            case HEADER_FOOTER:
+            case HEADER:
+                dataIndex -= 1;
+                break;
+        }
+
+        mData.remove(dataIndex);
+        notifyItemRemoved(itemIndex);
     }
 
     /**

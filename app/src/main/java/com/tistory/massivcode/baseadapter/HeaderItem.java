@@ -1,5 +1,7 @@
 package com.tistory.massivcode.baseadapter;
 
+import com.tistory.massivcode.baseadapter.library.BaseRecyclerAdapter;
+
 /**
  * Copyright 2016 Pureum Choe
  * <p>
