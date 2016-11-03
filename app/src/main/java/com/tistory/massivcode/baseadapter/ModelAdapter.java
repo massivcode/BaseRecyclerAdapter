@@ -82,16 +82,6 @@ public class ModelAdapter extends BaseRecyclerAdapter<Model, ModelAdapter.ModelV
         footerViewHolder.mFooterTextView2.setText(item.getString2());
     }
 
-    @Override
-    public void setOnItemClickListener(OnRecyclerItemClickListener listener) {
-
-    }
-
-    @Override
-    public void setOnItemLongClickListener(OnRecyclerItemLongClickListener listener) {
-
-    }
-
 
     static class ModelViewHolder extends RecyclerView.ViewHolder {
         TextView mTitleTextView, mContentsTextView;

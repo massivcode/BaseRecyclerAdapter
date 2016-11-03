@@ -35,12 +35,28 @@ import static com.tistory.massivcode.baseadapter.library.BaseRecyclerAdapter.Vie
 
 public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements OnItemDragListener, OnItemSwipeListener {
 
+    public interface OnRecyclerHeaderClickListener {
+        void onRecyclerHeaderClicked(Header header);
+    }
+
+    public interface OnRecyclerHeaderLongClickListener {
+        void onRecyclerHeaderLongClicked(Header header);
+    }
+
+    public interface OnRecyclerFooterClickListener {
+        void onRecyclerFooterClicked(Footer footer);
+    }
+
+    public interface OnRecyclerFooterLongClickListener {
+        void onRecyclerFooterLongClicked(Footer footer);
+    }
+
     public interface OnRecyclerItemClickListener {
-        void onRecyclerItemClicked(View view, int position);
+        void onRecyclerItemClicked(int position);
     }
 
     public interface OnRecyclerItemLongClickListener {
-        void onRecyclerItemLongClicked(View view, int position);
+        void onRecyclerItemLongClicked(int position);
     }
 
     /**
@@ -93,7 +109,12 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
      */
     private List<Item> mData;
 
-    private ItemTouchHelper mItemTouchHelper;
+    private OnRecyclerItemClickListener mOnItemClickListener;
+    private OnRecyclerItemLongClickListener mOnItemLongClickListener;
+    private OnRecyclerHeaderClickListener mOnHeaderClickListener;
+    private OnRecyclerHeaderLongClickListener mOnHeaderLongClickListener;
+    private OnRecyclerFooterClickListener mOnFooterClickListener;
+    private OnRecyclerFooterLongClickListener mOnFooterLongClickListener;
 
     public BaseRecyclerAdapter(@Nullable List<Item> data, ViewType viewType) {
         setViewType(viewType);
@@ -144,14 +165,77 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
         switch (viewType) {
             case TYPE_CONTENTS:
                 holder = onCreateItemViewHolder(parent, viewType);
+                final RecyclerView.ViewHolder finalHolder = holder;
+
+                holder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (mOnItemClickListener != null) {
+                            mOnItemClickListener.onRecyclerItemClicked(finalHolder.getAdapterPosition());
+                        }
+                    }
+                });
+
+                holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+                        if (mOnItemLongClickListener != null) {
+                            mOnItemLongClickListener.onRecyclerItemLongClicked(finalHolder.getAdapterPosition());
+                            return true;
+                        }
+
+                        return false;
+                    }
+                });
                 break;
             case TYPE_HEADER:
                 holder = onCreateHeaderViewHolder(parent, viewType);
-                holder.itemView.setFocusable(false);
-                holder.itemView.setClickable(false);
+
+                holder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (mOnHeaderClickListener != null) {
+                            mOnHeaderClickListener.onRecyclerHeaderClicked(mHeader);
+                        }
+                    }
+                });
+
+                holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+                        if (mOnHeaderLongClickListener != null) {
+                            mOnHeaderLongClickListener.onRecyclerHeaderLongClicked(mHeader);
+                            return true;
+                        }
+
+                        return false;
+                    }
+                });
                 break;
             case TYPE_FOOTER:
                 holder = onCreateFooterViewHolder(parent, viewType);
+
+                holder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (mOnFooterClickListener != null) {
+                            mOnFooterClickListener.onRecyclerFooterClicked(mFooter);
+                        }
+                    }
+                });
+
+                holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+                        if (mOnFooterLongClickListener != null) {
+                            mOnFooterLongClickListener.onRecyclerFooterLongClicked(mFooter);
+
+                            return true;
+                        }
+
+                        return false;
+                    }
+                });
                 break;
         }
 
@@ -248,8 +332,8 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
         ItemTouchHelper.Callback callback = new ItemSwipeAndDragCallback(this, this);
-        mItemTouchHelper = new ItemTouchHelper(callback);
-        mItemTouchHelper.attachToRecyclerView(recyclerView);
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
     }
 
     @Override
@@ -393,9 +477,27 @@ public abstract class BaseRecyclerAdapter<Item, VH extends RecyclerView.ViewHold
     }
 
 
-    public abstract void setOnItemClickListener(OnRecyclerItemClickListener listener);
+    public final void setOnItemClickListener(OnRecyclerItemClickListener listener) {
+        mOnItemClickListener = listener;
+    }
 
-    public abstract void setOnItemLongClickListener(OnRecyclerItemLongClickListener listener);
+    public final void setOnItemLongClickListener(OnRecyclerItemLongClickListener listener) {
+        mOnItemLongClickListener = listener;
+    }
 
+    public final void setOnHeaderClickListener(OnRecyclerHeaderClickListener listener) {
+        this.mOnHeaderClickListener = listener;
+    }
 
+    public final void setOnHeaderLongClickListener(OnRecyclerHeaderLongClickListener listener) {
+        this.mOnHeaderLongClickListener = listener;
+    }
+
+    public final void setOnFooterClickListener(OnRecyclerFooterClickListener listener) {
+        this.mOnFooterClickListener = listener;
+    }
+
+    public final void setOnFooterLongClickListener(OnRecyclerFooterLongClickListener listener) {
+        this.mOnFooterLongClickListener = listener;
+    }
 }

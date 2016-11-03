@@ -23,13 +23,19 @@ public class MainActivity extends AppCompatActivity {
             data.add(new Model("title " + i, "contents " + i));
         }
 
-        final ModelAdapter adapter = new ModelAdapter(data, BaseRecyclerAdapter.ViewType.HEADER_FOOTER);
+        final ModelAdapter adapter = new ModelAdapter(data, BaseRecyclerAdapter.ViewType.CONTENTS_ONLY);
         adapter.setHeaderItem(new HeaderItem("헤더 텍스트1", "헤더 텍스트2"));
         adapter.setFooterItem(new FooterItem("푸터 텍스트1", "푸터 텍스트2"));
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.main_rv);
         recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false));
         recyclerView.setAdapter(adapter);
 
+        adapter.setOnItemClickListener(new BaseRecyclerAdapter.OnRecyclerItemClickListener() {
+            @Override
+            public void onRecyclerItemClicked(int position) {
+                System.out.println("position: " + position);
+            }
+        });
 
     }
 }
